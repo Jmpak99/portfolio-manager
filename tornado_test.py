@@ -29,7 +29,7 @@ if __name__ == "__main__":
     # the commands below only work when this module is the main program
     app = make_app()
     # to assign the value of "make_app()" to "app"
-    app.listen(8888)
+    #app.listen(8888)
     # Starts an HTTP server for this application on the given port(8888)
     # It returns HTTPSever object
     tornado.ioloop.IOLoop.current().start()
