@@ -31,7 +31,7 @@ class MyFormHandler(tornado.web.RequestHandler):
 
 
 application = tornado.web.Application([
-    (r"/", MyFormHandler)
+    (r"/", MyFormHandler), (r"/[a-zA-Z0-9_]+", MyFormHandler),
 ])
 # this set of (r"url", handler) is called "route", it proceeds to run a web server
 
