@@ -10,8 +10,23 @@ if sys.platform == 'win32':
     # The default has changed from selector to proactor in Python 3.8.
     # Thus, this line should be added to detour probable errors
 
+def mysql_connect():
+    #to connect mysql_database
+    cnx = mysql.connector.connect(
+                #connect to mysql server
+                host='127.0.0.1',
+                password='your_password',
+                user='root',
+                port=3307,
+                database='mydatabase'
+            )
+    mycursor = cnx.cursor()
 
-class FormHandler(tornado.web.RequestHandler):
+    return cnx, mycursor
+cnx, mycursor = mysql_connect()
+#cnx, mycursor variables are going to be used in the handler classes
+
+class DataInsertHandler(tornado.web.RequestHandler):
 # to get data input by html form and transmit input data into MySQL server to save it
     def get(self):
         # to request an input form by GET method
@@ -25,27 +40,9 @@ class FormHandler(tornado.web.RequestHandler):
         self.set_header("Content-Type", "text/plain")
         # to set header type
 
-        data_raw = self.request.body.decode('utf-8')
-        data_splited = data_raw.split("=")
-        data_input = data_splited[1]
-        # to change Bytes type into Str
-        # to take only value by splitting it
+        data_input = self.get_argument("message")
 
         self.write("you have saved data :  " + data_input + "  to MySQL server 'mydatabase'")
-
-
-        cnx = mysql.connector.connect(
-        # connect to mysql server
-            host='127.0.0.1',
-            password='your_password',
-            user='root',
-            port=3307,
-            ##port number default is '3306', but in my computer 3306 makes error so I assigned it to '3307'
-            database='mydatabase'
-            #database name is "mydatabase"
-        )
-
-        mycursor = cnx.cursor()
 
         sql = "INSERT INTO test_table (test_data) VALUES (%s)"
         val = (data_input,)
@@ -57,7 +54,7 @@ class FormHandler(tornado.web.RequestHandler):
         print(mycursor.rowcount, "record inserted.")
 
 
-class DataHandler(tornado.web.RequestHandler):
+class DataSelectHandler(tornado.web.RequestHandler):
     #to get input(id) by HTML and show the allocated data according to what has been input(id)
     def get(self):
         #to show HTML input form by GET method
@@ -70,21 +67,8 @@ class DataHandler(tornado.web.RequestHandler):
         #to get data from Mysql database("mydatabase") and show it on the page "/showdata"
         self.set_header("Content-Type", "text/plain")
 
-        data_raw = self.request.body.decode('utf-8')
-        data_splited = data_raw.split("=")
-        data_input = data_splited[1]
-        #to change bytes type to string type
+        data_input = self.get_argument("message")
 
-        cnx = mysql.connector.connect(
-            #connect to mysql server
-            host='127.0.0.1',
-            password='your_password',
-            user='root',
-            port=3307,
-            database='mydatabase'
-        )
-
-        mycursor = cnx.cursor()
 
         sql = "SELECT * FROM test_table WHERE test_id = %s"
         id = (data_input,)
@@ -94,17 +78,17 @@ class DataHandler(tornado.web.RequestHandler):
         myresult = mycursor.fetchall()
         import itertools
         out = list(itertools.chain(*myresult))
-        #change tupel to list
+        #change tupel type to list type
         id_value = out[1]
         #out[0] is input id and out[1] is the value of it
         self.write(id_value)
         #to write data in "mydatabase" matched to input id
 
 application = tornado.web.Application([
-    (r"/", FormHandler), (r"/showdata", DataHandler),
+    (r"/", DataInsertHandler),
+    (r"/showdata", DataSelectHandler),
     #to map "/" to FormHandler, to map "/showdata" to DataHandler
 ])
-
 
 
 if __name__ == "__main__":
