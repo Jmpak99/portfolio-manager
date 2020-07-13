@@ -19,6 +19,7 @@ def insert(data_input):
     sql = "INSERT INTO test_table (test_data) VALUES (%s)"
     val = (data_input,)
 
+
     db_class.execute(sql, val)
     #insert input data into test_data
     #structure (schema : 'mydatabase' -> table : 'test_table' -> column : 'test_data')
