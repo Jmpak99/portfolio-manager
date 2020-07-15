@@ -3,7 +3,7 @@ import tornado.ioloop
 import tornado.web
 import sys
 import asyncio
-from app.module import dbModule
+from app.module import db_connection_Module
 # I made a separate directory only for MySQL connection python module
 
 if sys.platform == 'win32':
@@ -14,7 +14,7 @@ if sys.platform == 'win32':
 
 def select_from_table():
     # to get all table record data by SELECT method
-    db_class = dbModule.Database()
+    db_class = db_connection_Module.Database()
 
     sql = "SELECT * FROM test_table"
 
@@ -27,7 +27,7 @@ def select_from_table():
 
 def show_columns_from_table():
     # to take a name of the each column from the table
-    db_class = dbModule.Database()
+    db_class = db_connection_Module.Database()
 
     sql = "SHOW COLUMNS FROM test_table"
 
