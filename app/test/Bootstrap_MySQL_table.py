@@ -15,14 +15,10 @@ if sys.platform == 'win32':
 class DataTableShowHandler(tornado.web.RequestHandler):
     # to show data in the schema as a table form
     def get(self):
-        db_table = MySQL_conn_Module.db_Table()
-        # to use db_Table() methods
-        columns = db_table.show_columns_from_table()
+        columns = MySQL_conn_Module.show_columns_from_table()
         # "contents" has a list of tuples which has table data
         # (ex. : [(id_value1, address_value1), (id_value2, address_value2)...]
-        contents = db_table.select_from_table()
-
-
+        contents = MySQL_conn_Module.select_from_table()
 
         self.render("bootstrap_table.html",
                     database_name="show table",
