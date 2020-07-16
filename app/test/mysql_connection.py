@@ -13,68 +13,6 @@ if sys.platform == 'win32':
     # Thus, this line should be added to detour probable errors
 
 
-def insert_into_db(data_input):
-    # MySQL INSERT function
-    db_class = dbModule.Database()
-
-    sql = "INSERT INTO test_table (test_data) VALUES (%s)"
-
-    val = (data_input,)
-
-    db_class.execute(sql, val)
-    #insert input data into test_data
-    #structure (schema : 'mydatabase' -> table : 'test_table' -> column : 'test_data')
-    db_class.commit()
-    #to apply changes and commit
-    print(db_class.mycursor.rowcount, "record inserted.")
-
-
-def select_by_id(id_input):
-    # when id number is input, it returns data matched to the input id using MySQL SELECT function
-    db_class = dbModule.Database()
-
-    sql = "SELECT * FROM test_table WHERE test_id = %s"
-
-    id = (id_input,)
-
-    db_class.execute(sql, id)
-
-    row = db_class.mycursor.fetchall()
-    value_in_id = row[0][1]
-    #row structure --> [(x, y)] tuple in list, so I refered to y by row[0][1]
-
-    return value_in_id
-
-
-def select_from_table():
-    # to get all table record data by SELECT method
-    db_class = dbModule.Database()
-
-    sql = "SELECT * FROM test_table"
-
-    db_class.execute(sql)
-
-    row = db_class.mycursor.fetchall()
-    return row
-
-def show_columns_from_table():
-    # to take a name of the each column from the table
-    db_class = dbModule.Database()
-
-    sql = "SHOW COLUMNS FROM test_table"
-
-    db_class.execute(sql)
-
-    rows = db_class.mycursor.fetchall()
-
-    columns = []
-
-    print (rows)
-    for row in rows:
-        columns.append(row[0])
-        # to save column name in the "columns" list
-    return columns
-
 class DataInsertHandler(tornado.web.RequestHandler):
 # to get data input by html form and transmit input data into MySQL server to save it
     def get(self):
@@ -91,7 +29,7 @@ class DataInsertHandler(tornado.web.RequestHandler):
 
         data_input = self.get_argument("message")
 
-        insert_into_db(data_input)
+        dbModule.insert_into_db(data_input)
 
         self.write("you have saved data :  " + data_input + "  to MySQL server 'mydatabase'")
 
@@ -112,31 +50,14 @@ class DataSelectHandler(tornado.web.RequestHandler):
 
         data_input = self.get_argument("message")
 
-        value_in_id = select_by_id(data_input)
+        value_in_id = dbModule.select_by_id(data_input)
 
         self.write(value_in_id)
-
-
-class DataTableShowHandler(tornado.web.RequestHandler):
-    # to show data in the schema as a table form
-    def get(self):
-        columns = show_columns_from_table()
-        # "contents" has a list of tuples which has table data
-        # (ex. : [(id_value1, address_value1), (id_value2, address_value2)...]
-        contents = select_from_table()
-
-        self.render("bootstrap_test.html",
-                    database_name = "show table",
-                    table_name = "Test Table",
-                    contents = contents,
-                    columns = columns
-                    )
 
 
 application = tornado.web.Application([
     (r"/", DataInsertHandler),
     (r"/showdata", DataSelectHandler),
-    (r"/show-all", DataTableShowHandler)
     #to map "/" to FormHandler, to map "/showdata" to DataHandler
 ])
 
