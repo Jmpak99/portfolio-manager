@@ -26,11 +26,8 @@
       <!-- "contents" has a list of tuples which has table data
       (ex. : [(id_value1, address_value1), (id_value2, address_value2)...]-->
       <tr>
-        {% for x in range(len(contents[0])) %}
-        <!-- to figure out how many column the table has-->
-        <td>{{ str(content[x]) }}</td>
-        <!-- "content" above is a tuple,
-         and str(content[x]) returns str values in the tuple in a row-->
+        {% for x in content %}
+        <td>{{ str(x) }}</td>
         {% end %}
       </tr>
       {% end %}
