@@ -30,33 +30,42 @@ class Database():
     def commit(self):
         self.cnx.commit()
 
-class db_Table():
-    def select_from_table(self):
-        # to get all table record data by SELECT method
-        db_class = Database()
 
-        sql = "SELECT * FROM test_table"
+def show_columns_from_table():
+    # to take a name of the each column from the table
+    db_class = Database()
 
-        db_class.execute(sql)
+    sql = "SHOW COLUMNS FROM test_table"
 
-        row = db_class.mycursor.fetchall()
+    db_class.execute(sql)
 
-        return row
+    rows = db_class.mycursor.fetchall()
+
+    columns = [row[0] for row in rows]
+    # list comprehension used
+
+    return columns
+    # to return name of each column as a list
 
 
-    def show_columns_from_table(self):
-        # to take a name of the each column from the table
-        db_class = Database()
+def select_from_table():
+    # to get all table record data by SELECT method
+    db_class = Database()
 
-        sql = "SHOW COLUMNS FROM test_table"
+    columns = show_columns_from_table()
 
-        db_class.execute(sql)
+    column = ""
+    # I don't know whether convention of empty string designation is "" or "None"
+    for x in columns:
+        column = column + x + ","
 
-        rows = db_class.mycursor.fetchall()
+    column = column.rstrip(",")
+    # to erase "," at the end
+    sql = "SELECT %s FROM test_table" %column
+    # to use actual column names directly in the query statement instead of using "*"
+    # 'column' could have several columns --> ex) "test_id,test_data"
+    db_class.execute(sql)
 
-        columns = []
+    row = db_class.mycursor.fetchall()
 
-        for row in rows:
-            columns.append(row[0])
-            # to save column name in the "columns" list
-        return columns
+    return row
