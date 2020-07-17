@@ -23,6 +23,7 @@ class DataInsertHandler(tornado.web.RequestHandler):
                    '</form></body></html>')
         # input data moves to "/" by POST method
 
+
     def post(self):
         self.set_header("Content-Type", "text/plain")
         # to set header type

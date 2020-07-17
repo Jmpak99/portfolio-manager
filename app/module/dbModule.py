@@ -41,8 +41,10 @@ def insert_into_db(data_input):
     db_class.execute(sql, val)
     #insert input data into test_data
     #structure (schema : 'mydatabase' -> table : 'test_table' -> column : 'test_data')
+
     db_class.commit()
     #to apply changes and commit
+
     print(db_class.mycursor.rowcount, "record inserted.")
 
 
@@ -57,6 +59,7 @@ def select_by_id(id_input):
     db_class.execute(sql, id)
 
     row = db_class.mycursor.fetchall()
+
     value_in_id = row[0][1]
     #row structure --> [(x, y)] tuple in list, so I refered to y by row[0][1]
 
