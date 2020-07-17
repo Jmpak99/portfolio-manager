@@ -26,11 +26,12 @@ class DataInsertHandler(tornado.web.RequestHandler):
 
     def post(self):
         self.set_header("Content-Type", "text/plain")
-        # to set header type
 
         data_input = self.get_argument("message")
 
-        dbModule.insert_into_db(data_input)
+        database = dbModule.Database()
+
+        database.insert_into_db(data_input)
 
         self.write("you have saved data :  " + data_input + "  to MySQL server 'mydatabase'")
 
@@ -51,7 +52,9 @@ class DataSelectHandler(tornado.web.RequestHandler):
 
         data_input = self.get_argument("message")
 
-        value_in_id = dbModule.select_by_id(data_input)
+        database = dbModule.Database()
+
+        value_in_id = database.select_by_id(data_input)
 
         self.write(value_in_id)
 
