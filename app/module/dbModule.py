@@ -1,7 +1,6 @@
 import mysql.connector
 
 
-
 class Database():
     def __init__(self):
         # to connect mysql_database
@@ -15,15 +14,15 @@ class Database():
         )
         self.mycursor = self.cnx.cursor()
 
-    def execute(self, query, args={}):
+    def execute(self, query, args=None):
         self.mycursor.execute(query, args)
 
-    def executeOne(self, query, args={}):
+    def execute_one(self, query, args=None):
         self.mycursor.execute(query, args)
         row = self.mycursor.fetchone()
         return row
 
-    def executeAll(self, query, args={}):
+    def execute_all(self, query, args=None):
         self.mycursor.execute(query, args)
         row = self.mycursor.fetchall()
         return row
@@ -62,4 +61,3 @@ def select_by_id(id_input):
     #row structure --> [(x, y)] tuple in list, so I refered to y by row[0][1]
 
     return value_in_id
-
