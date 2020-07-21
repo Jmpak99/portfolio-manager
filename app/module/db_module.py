@@ -39,8 +39,8 @@ class Database():
         # In Python, a tuple containing a single value must include a comma.
         # For example, ('abc') is evaluated as a scalar while ('abc',) is evaluated as a tuple.
         db_class.execute(sql, val)
-        #insert input data into test_data
-        #structure (schema : 'mydatabase' -> table : 'test_table' -> column : 'test_data')
+        # insert input data into test_data
+        # structure (schema : 'mydatabase' -> table : 'test_table' -> column : 'test_data')
 
         db_class.commit()
 
@@ -57,6 +57,6 @@ class Database():
         row = db_class.mycursor.fetchall()
 
         value_in_id = row[0][1]
-        #row structure --> [(x, y)] tuple in list, so I refered to y by row[0][1]
+        # row structure --> [(x, y)] tuple in list, so I refered to y by row[0][1]
 
         return value_in_id
