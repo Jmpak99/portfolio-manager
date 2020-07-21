@@ -1,4 +1,4 @@
-from app.module import dbModule
+from app.module import db_module
 
 
 MIGRATION_HEAD = int(input())
@@ -7,13 +7,13 @@ MIGRATION_HEAD = int(input())
 
 
 def create_test_table():
-    db_module = dbModule.Database()
+    db = db_module.Database()
 
     query = "CREATE TABLE test_table_2 (test_id INT AUTO_INCREMENT PRIMARY KEY, test_data VARCHAR(255))"
 
-    db_module.execute(query)
+    db.execute(query)
 
-    db_module.commit()
+    db.commit()
 
 
 MIGRATIONS = [
