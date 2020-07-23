@@ -6,6 +6,7 @@ import asyncio
 from app.module import MySQL_conn_Module
 # I made a separate directory only for MySQL connection python module
 
+
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     # The default has changed from selector to proactor in Python 3.8.

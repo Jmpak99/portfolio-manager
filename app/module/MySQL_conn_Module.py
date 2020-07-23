@@ -69,3 +69,4 @@ def select_from_table():
     row = db_class.mycursor.fetchall()
 
     return row
+
