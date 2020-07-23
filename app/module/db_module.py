@@ -6,10 +6,10 @@ class Database:
         # to connect mysql_database
         self.cnx = mysql.connector.connect(
             host='127.0.0.1',
-            password='your_password',
+            password='1111',
             user='root',
-            port=3307,
-            database='mydatabase'
+            port=3306,
+            database='test_database'
         )
         self.mycursor = self.cnx.cursor()
 
