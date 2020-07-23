@@ -86,16 +86,12 @@ def select_from_table():
 
     columns = show_columns_from_table()
 
-    column = ""
-    # I don't know whether convention of empty string designation is "" or "None"
-    for x in columns:
-        column = column + x + ","
+    columns = ",".join(columns)
 
-    column = column.rstrip(",")
-    # to erase "," at the end
-    sql = "SELECT %s FROM test_table" %column
+    sql = "SELECT {} FROM test_table" .format(columns)
     # to use actual column names directly in the query statement instead of using "*"
     # 'column' could have several columns --> ex) "test_id,test_data"
+
     db_class.execute(sql)
 
     row = db_class.mycursor.fetchall()
