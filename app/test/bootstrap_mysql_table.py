@@ -3,7 +3,7 @@ import tornado.ioloop
 import tornado.web
 import sys
 import asyncio
-from app.module import MySQL_conn_Module
+from app.module import db_query_module
 # I made a separate directory only for MySQL connection python module
 
 
@@ -16,10 +16,10 @@ if sys.platform == 'win32':
 class DataTableShowHandler(tornado.web.RequestHandler):
     # to show data in the schema as a table form
     def get(self):
-        columns = MySQL_conn_Module.show_columns_from_table()
+        columns = db_query_module.show_columns_from_table()
         # "contents" has a list of tuples which has table data
         # (ex. : [(id_value1, address_value1), (id_value2, address_value2)...]
-        contents = MySQL_conn_Module.select_from_table()
+        contents = db_query_module.select_from_table()
 
         self.render("bootstrap_table.html",
                     database_name="show table",

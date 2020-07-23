@@ -68,7 +68,6 @@ if __name__ == "__main__":
     http_server = tornado.httpserver.HTTPServer(application)
 
     socket_address = 8888
-
     http_server.listen(socket_address)
 
     # print("the socket address %d has been assigned" % socket_address)
