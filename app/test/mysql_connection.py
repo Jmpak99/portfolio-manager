@@ -4,7 +4,6 @@ import tornado.web
 import sys
 import asyncio
 from app.module import db_module
-
 # I made a separate directory only for MySQL connection python module
 
 
@@ -64,9 +63,12 @@ application = tornado.web.Application([
     # to map "/" to FormHandler, to map "/showdata" to DataHandler
 ])
 
+
 if __name__ == "__main__":
     http_server = tornado.httpserver.HTTPServer(application)
+
     socket_address = 8888
+
     http_server.listen(socket_address)
 
     # print("the socket address %d has been assigned" % socket_address)
