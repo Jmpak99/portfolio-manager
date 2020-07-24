@@ -31,7 +31,7 @@ class DataTableShowHandler(tornado.web.RequestHandler):
 
 application = tornado.web.Application([
     (r"/show-all", DataTableShowHandler)
-    #to map "/" to FormHandler, to map "/showdata" to DataHandler
+    # to map "/" to FormHandler, to map "/showdata" to DataHandler
 ])
 
 
@@ -40,5 +40,5 @@ if __name__ == "__main__":
 
     socket_address = 8888
     http_server.listen(socket_address)
-    #print("the socket address %d has been assigned" % socket_address)
+    # print("the socket address %d has been assigned" % socket_address)
     tornado.ioloop.IOLoop.instance().start()

@@ -58,7 +58,7 @@ class Database:
         row = db_class.mycursor.fetchall()
 
         value_in_id = row[0][1]
-        # row structure --> [(x, y)] tuple in list, so I refered to y by row[0][1]
+        # row structure --> [(x, y)] tuple in list, so I referred to y by row[0][1]
 
         return value_in_id
 
@@ -84,13 +84,7 @@ def select_from_table():
     # to get all table record data by SELECT method
     db_class = Database()
 
-    columns = show_columns_from_table()
-
-    columns = ",".join(columns)
-
-    sql = "SELECT {} FROM test_table" .format(columns)
-    # to use actual column names directly in the query statement instead of using "*"
-    # 'column' could have several columns --> ex) "test_id,test_data"
+    sql = "SELECT test_id, test_data FROM test_table"
 
     db_class.execute(sql)
 
