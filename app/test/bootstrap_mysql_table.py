@@ -3,6 +3,7 @@ import tornado.ioloop
 import tornado.web
 import sys
 import asyncio
+from enum import Enum
 # a separate directory only for MySQL connection python module
 from app.module import db_query_module
 
@@ -60,9 +61,14 @@ class DataSelectHandler(tornado.web.RequestHandler):
 # to show data in the schema as a table form
 class DataTableShowHandler(tornado.web.RequestHandler):
     def get(self):
-        # "contents" has a list of tuples which has table data
-        # (ex. : [(id_value1, address_value1), (id_value2, address_value2)...]
-        columns = db_query_module.show_columns_from_table()
+        # to change real column names to readable column names
+        class ColumnName(Enum):
+            TestID = "test_id"
+            TestData = "test_data"
+
+        column_name_list = db_query_module.show_columns_from_table()
+
+        readable_col_list = [ColumnName(col).name for col in column_name_list]
 
         contents = db_query_module.select_from_table()
 
@@ -70,7 +76,7 @@ class DataTableShowHandler(tornado.web.RequestHandler):
                     database_name="show table",
                     table_name="Test Table",
                     contents=contents,
-                    columns=columns
+                    columns=readable_col_list
                     )
 
 

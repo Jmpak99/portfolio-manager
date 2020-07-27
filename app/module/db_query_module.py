@@ -1,4 +1,5 @@
 import mysql.connector
+from enum import Enum
 
 
 class Database(object):
