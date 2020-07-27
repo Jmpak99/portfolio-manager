@@ -1,15 +1,17 @@
 import mysql.connector
+from enum import Enum
 
 
-class Database():
+class Database(object):
     def __init__(self):
         # to connect mysql_database
         self.cnx = mysql.connector.connect(
+            # connect to mysql server
             host='127.0.0.1',
-            password='your_password',
+            password='1111',
             user='root',
-            port=3307,
-            database='mydatabase'
+            port=3306,
+            database='test_database'
         )
         self.mycursor = self.cnx.cursor()
 
@@ -57,6 +59,37 @@ class Database():
         row = db_class.mycursor.fetchall()
 
         value_in_id = row[0][1]
-        # row structure --> [(x, y)] tuple in list, so I refered to y by row[0][1]
+        # row structure --> [(x, y)] tuple in list, so I referred to y by row[0][1]
 
         return value_in_id
+
+
+def show_columns_from_table():
+    # to take a name of the each column from the table
+    db_class = Database()
+
+    sql = "SHOW COLUMNS FROM test_table"
+
+    db_class.execute(sql)
+
+    rows = db_class.mycursor.fetchall()
+
+    columns = [row[0] for row in rows]
+    # list comprehension used
+
+    return columns
+    # to return name of each column as a list
+
+
+def select_from_table():
+    # to get all table record data by SELECT method
+    db_class = Database()
+
+    sql = "SELECT test_id, test_data FROM test_table"
+
+    db_class.execute(sql)
+
+    row = db_class.mycursor.fetchall()
+
+    return row
+
