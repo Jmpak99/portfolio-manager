@@ -3,14 +3,14 @@ import tornado.ioloop
 import tornado.web
 import sys
 import asyncio
-from app.module import db_module
-
-# I made a separate directory only for MySQL connection python module
+from enum import Enum
+# a separate directory only for MySQL connection python module
+from app.module import db_query_module
 
 
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    # The default has changed from selector to proactor in Python 3.8.
+    # The default has changed from selector to pro-actor in Python 3.8.
     # Thus, this line should be added to detour probable errors
 
 
@@ -29,7 +29,7 @@ class DataInsertHandler(tornado.web.RequestHandler):
 
         data_input = self.get_argument("message")
 
-        database = db_module.Database()
+        database = db_query_module.Database()
 
         database.insert_into_db(data_input)
 
@@ -51,21 +51,47 @@ class DataSelectHandler(tornado.web.RequestHandler):
 
         data_input = self.get_argument("message")
 
-        database = db_module.Database()
+        database = db_query_module.Database()
 
         value_in_id = database.select_by_id(data_input)
 
         self.write(value_in_id)
 
 
+# to show data in the schema as a table form
+class DataTableShowHandler(tornado.web.RequestHandler):
+    def get(self):
+        # to change real column names to readable column names
+        class ColumnName(Enum):
+            TestID = "test_id"
+            TestData = "test_data"
+
+        column_name_list = db_query_module.show_columns_from_table()
+
+        readable_col_list = [ColumnName(col).name for col in column_name_list]
+
+        contents = db_query_module.select_from_table()
+
+        self.render("bootstrap_table.html",
+                    database_name="show table",
+                    table_name="Test Table",
+                    contents=contents,
+                    columns=readable_col_list
+                    )
+
+
+# to map "/" to FormHandler, to map "/showdata" to DataHandler
+# to map "/show-all" to DataTableShowHandler
 application = tornado.web.Application([
     (r"/", DataInsertHandler),
     (r"/showdata", DataSelectHandler),
-    # to map "/" to FormHandler, to map "/showdata" to DataHandler
+    (r"/show-all", DataTableShowHandler)
 ])
+
 
 if __name__ == "__main__":
     http_server = tornado.httpserver.HTTPServer(application)
+
     socket_address = 8888
     http_server.listen(socket_address)
 

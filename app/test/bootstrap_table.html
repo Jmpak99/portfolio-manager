@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>{{ database_name }}</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+</head>
+<body>
+<div class="container">
+  <h2> {{"Test_Table"}} </h2>
+  <table class="table">
+    <thead>
+      <tr>
+         {% for column in columns %}
+         <th scope="col">{{ escape(column) }}</th>
+        {% end %}
+      </tr>
+    </thead>
+    <tbody>
+    <!-- to allocate record data to each column-->
+      {% for content in contents %}
+      <!-- "contents" has a list of tuples which has table data
+      (ex. : [(id_value1, address_value1), (id_value2, address_value2)...]-->
+      <tr>
+        {% for x in content %}
+        <td>{{ str(x) }}</td>
+        {% end %}
+      </tr>
+      {% end %}
+    </tbody>
+  </table>
+</div>
+
+</body>
+</html>
