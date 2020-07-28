@@ -13,12 +13,22 @@ def get_current_stock_price(stock_symbol):
     else:
         country = "united States"
 
-    current_price_raw = investpy.stocks.get_stock_recent_data(stock_symbol, country, as_json=True, order='descending', interval='Daily')
+    try:
+        current_price_raw = investpy.stocks.get_stock_recent_data(stock_symbol, country, as_json=True,
+                                                                  order='descending', interval='Daily')
 
-    # to change dictionary embedded str type to dictionary type
-    current_price_dict = json.loads(current_price_raw)
+        # to change dictionary embedded str type to dictionary type
+        current_price_dict = json.loads(current_price_raw)
 
-    # get today's close price for a certain stock
-    current_price = current_price_dict['recent'][0]['close']
+        # get today's close price for a certain stock
+        current_price = current_price_dict['recent'][0]['close']
 
-    return current_price
+        return current_price
+    except ValueError as e:
+        print(e)
+    except IOError as e:
+        print(e)
+    except RuntimeError as e:
+        print(e)
+    except IndexError as e:
+        print(e)
