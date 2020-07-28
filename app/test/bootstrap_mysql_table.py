@@ -6,6 +6,7 @@ import asyncio
 from enum import Enum
 # a separate directory only for MySQL connection python module
 from app.module import db_query_module
+from controller import get_current_stock_price
 
 
 if sys.platform == 'win32':
@@ -29,18 +30,27 @@ class DataInsertHandler(tornado.web.RequestHandler):
 
         data_input = self.get_argument("message")
 
-        database = db_query_module.Database()
+        # if input stock data is not available, it shows error message
+        try:
+            get_current_stock_price.get_current_price(data_input)
 
-        database.insert_into_db(data_input)
+            database = db_query_module.Database()
 
-        self.write("you have saved data :  " + data_input)
+            database.insert_into_db(data_input)
 
+            self.write("input stock code has been saved :  " + data_input)
+        except IOError as e:
+            self.write(str(e))
+        except IndexError as e:
+            self.write(str(e))
+        except RuntimeError as e:
+            self.write(str(e))
 
 class DataSelectHandler(tornado.web.RequestHandler):
     # to get input(id) by HTML and show the allocated data according to what has been input(id)
     def get(self):
         # to show HTML input form by GET method
-        self.write('<html><body><form action="/showdata" method="POST">'
+        self.write('<html><body><form action="/show-data" method="POST">'
                    '<input type="text" name="message">'
                    '<input type="submit" value="Submit">'
                    '</form></body></html>')
@@ -84,7 +94,7 @@ class DataTableShowHandler(tornado.web.RequestHandler):
 # to map "/show-all" to DataTableShowHandler
 application = tornado.web.Application([
     (r"/", DataInsertHandler),
-    (r"/showdata", DataSelectHandler),
+    (r"/show-data", DataSelectHandler),
     (r"/show-all", DataTableShowHandler)
 ])
 
