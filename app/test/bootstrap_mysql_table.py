@@ -46,7 +46,7 @@ class DataSelectHandler(tornado.web.RequestHandler):
                    '</form></body></html>')
 
     def post(self):
-        # to get data from Mysql database("mydatabase") and show it on the page "/showdata"
+        # to get data from Mysql database("test_database") and show it on the page "/showdata"
         self.set_header("Content-Type", "text/plain")
 
         data_input = self.get_argument("message")
