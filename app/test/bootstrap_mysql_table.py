@@ -1,18 +1,27 @@
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
+from tornado import gen
+from tornado.concurrent import run_on_executor
+from concurrent.futures import ThreadPoolExecutor
 import sys
 import asyncio
+from multiprocessing import cpu_count
 from enum import Enum
 # a separate directory only for MySQL connection python module
 from app.module import db_query_module
 from controller import get_current_stock_price
 
-
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     # The default has changed from selector to pro-actor in Python 3.8.
     # Thus, this line should be added to detour probable errors
+
+
+# to change real column names to readable column names
+class ColumnName(Enum):
+    TestID = "test_id"
+    TestData = "test_data"
 
 
 class DataInsertHandler(tornado.web.RequestHandler):
@@ -28,7 +37,7 @@ class DataInsertHandler(tornado.web.RequestHandler):
     def post(self):
         self.set_header("Content-Type", "text/plain")
 
-        data_input = self.get_argument("message")
+        data_input = self.get_argument("message").upper()
 
         # if input stock data is not available, it shows error message
         try:
@@ -36,15 +45,32 @@ class DataInsertHandler(tornado.web.RequestHandler):
 
             database = db_query_module.Database()
 
-            database.insert_into_db(data_input)
+            contents = db_query_module.select_from_table()
 
-            self.write("input stock code has been saved :  " + data_input)
+            # get only stock_codes from contents above
+            stock_code_list = [stock_code[1] for stock_code in contents]
+
+            # to prevent registering repeated stock code in the db
+            existing_data = False
+            for x in stock_code_list:
+                if x == data_input:
+                    existing_data = True
+
+                    self.write("you have already registered {}".format(data_input))
+                    break
+
+            if not existing_data:
+                database.insert_into_db(data_input)
+
+                self.write("input stock code has been saved :  " + data_input)
+
         except IOError as e:
             self.write(str(e))
         except IndexError as e:
             self.write(str(e))
         except RuntimeError as e:
             self.write(str(e))
+
 
 class DataSelectHandler(tornado.web.RequestHandler):
     # to get input(id) by HTML and show the allocated data according to what has been input(id)
@@ -68,25 +94,53 @@ class DataSelectHandler(tornado.web.RequestHandler):
         self.write(value_in_id)
 
 
+class TaskRunner(object):
+    executor = ThreadPoolExecutor(max_workers=(cpu_count() * 5))
+
+    @run_on_executor
+    def get_stock_price(self, stock_code):
+        result = get_current_stock_price.get_current_price(stock_code)
+
+        return result
+
+
 # to show data in the schema as a table form
 class DataTableShowHandler(tornado.web.RequestHandler):
+    @gen.coroutine
     def get(self):
-        # to change real column names to readable column names
-        class ColumnName(Enum):
-            TestID = "test_id"
-            TestData = "test_data"
-
         column_name_list = db_query_module.show_columns_from_table()
 
         readable_col_list = [ColumnName(col).name for col in column_name_list]
 
+        # 'contents' has a list of tuples which has table data
+        # (ex. : [(id_value1, address_value1), (id_value2, address_value2)...]
         contents = db_query_module.select_from_table()
+
+        # get only stock_codes from contents above
+        stock_code_list = [stock_code[1] for stock_code in contents]
+
+        tasks = TaskRunner()
+
+        # run get_current_price async threads
+        # {"stock_code" : "current_price", ...} dict to be used when calling current_price
+        # run get_current_price() and get a current price
+        current_stock_price_dict = yield {stock_code: tasks.get_stock_price(stock_code)
+                                          for stock_code in stock_code_list}
+
+        # this is not actual contents in the database table to avoid saving data in the original database
+        # current_stock_price_dict[(x[1])] refers to stock_code record, to be added in the virtual_contents as a tuple
+        virtual_contents = [x + (current_stock_price_dict[(x[1])],) for x in contents]
+
+        # this is not an actual column
+        virtual_columns = [x for x in readable_col_list]
+
+        virtual_columns.append("Current Stock Price")
 
         self.render("bootstrap_table.html",
                     database_name="show table",
                     table_name="Test Table",
-                    contents=contents,
-                    columns=readable_col_list
+                    contents=virtual_contents,
+                    columns=virtual_columns,
                     )
 
 

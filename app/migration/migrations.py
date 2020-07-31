@@ -1,11 +1,11 @@
-from app.module import db_module
+from app.module import db_query_module
 
 
 MIGRATION_HEAD = int(input())
 
 # input 0 to create table "test_table" with columns "test_id", "test_data"
 
-db = db_module.Database()
+db = db_query_module.Database()
 # connection and cursor should be reusable
 
 def create_test_table():
