@@ -12,6 +12,7 @@ from enum import Enum
 from app.module import db_query_module
 from controller import get_current_stock_price
 
+
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     # The default has changed from selector to pro-actor in Python 3.8.
@@ -26,12 +27,6 @@ class ColumnName(Enum):
 
 class DataInsertHandler(tornado.web.RequestHandler):
     # to get data input by html form and transmit input data into MySQL server to save it
-    database = db_query_module.Database()
-
-    # 'contents' has a list of tuples which has table data
-    # (ex. : [(test_id1, stock_code1), (test_id2, stock_code2)...]
-    contents = db_query_module.select_from_table()
-
     def get(self):
         # to request an input form by GET method
         self.write('<html><body><form action="/" method="POST">'
@@ -45,12 +40,16 @@ class DataInsertHandler(tornado.web.RequestHandler):
 
         data_input = self.get_argument("message").upper()
 
+        # 'contents' has a list of tuples which has table data
+        # (ex. : [(test_id1, stock_code1), (test_id2, stock_code2)...]
+        contents = db_query_module.select_from_table()
+
         # if input stock data is not available, it shows error message
         try:
             get_current_stock_price.get_current_price(data_input)
 
             # get only stock_codes from contents above
-            stock_code_list = [stock_code[1] for stock_code in self.contents]
+            stock_code_list = [stock_code[1] for stock_code in contents]
 
             # to prevent registering repeated stock code in the db
             existing_data = False
@@ -62,7 +61,7 @@ class DataInsertHandler(tornado.web.RequestHandler):
                     break
 
             if not existing_data:
-                self.database.insert_into_db(data_input)
+                db_query_module.insert_into_db(data_input)
 
                 self.write("input stock code has been saved :  " + data_input)
 
@@ -76,8 +75,6 @@ class DataInsertHandler(tornado.web.RequestHandler):
 
 class DataSelectHandler(tornado.web.RequestHandler):
     # to get input(id) by HTML and show the allocated data according to what has been input(id)
-    database = db_query_module.Database()
-
     def get(self):
         # to show HTML input form by GET method
         self.write('<html><body><form action="/show-data" method="POST">'
@@ -91,7 +88,7 @@ class DataSelectHandler(tornado.web.RequestHandler):
 
         data_input = self.get_argument("message")
 
-        value_in_id = self.database.select_by_id(data_input)
+        value_in_id = db_query_module.select_by_id(data_input)
 
         self.write(value_in_id)
 
@@ -112,22 +109,23 @@ class DataTableShowHandler(tornado.web.RequestHandler):
 
     # 'contents' has a list of tuples which has table data
     # (ex. : [(test_id1, stock_code1), (test_id2, stock_code2)...]
-    contents = db_query_module.select_from_table()
-
-    column_name_list = db_query_module.show_columns_from_table()
 
     @gen.coroutine
     def get(self):
+        contents = db_query_module.select_from_table()
+
+        column_name_list = db_query_module.show_columns_from_table()
+
         # run get_current_price async threads
         current_stock_price_dict = yield {stock_code[1]: self.task_runner.get_stock_price(stock_code[1])
-                                          for stock_code in self.contents}
+                                          for stock_code in contents}
 
         # this is not actual contents in the database table to avoid saving data in the original database
         virtual_contents = [(test_id, stock_code, current_stock_price_dict[stock_code])
-                            for test_id, stock_code in self.contents]
+                            for test_id, stock_code in contents]
 
         # readable column list using Enum
-        readable_col_list = [ColumnName(col).name for col in self.column_name_list]
+        readable_col_list = [ColumnName(col).name for col in column_name_list]
 
         # this is not an actual column
         virtual_columns = [x for x in readable_col_list]
