@@ -1,5 +1,4 @@
 import mysql.connector
-from enum import Enum
 
 
 class Database(object):
@@ -31,37 +30,39 @@ class Database(object):
     def commit(self):
         self.cnx.commit()
 
-    def insert_into_db(self, data_input):
-        # MySQL INSERT function
-        db_class = Database()
 
-        sql = "INSERT INTO test_table (test_data) VALUES (%s)"
+def insert_into_db(data_input):
+    # MySQL INSERT function
+    db_class = Database()
 
-        val = (data_input,)
-        # In Python, a tuple containing a single value must include a comma.
-        # For example, ('abc') is evaluated as a scalar while ('abc',) is evaluated as a tuple.
-        db_class.execute(sql, val)
-        # insert input data into test_data
-        # structure (schema : 'mydatabase' -> table : 'test_table' -> column : 'test_data')
+    sql = "INSERT INTO test_table (test_data) VALUES (%s)"
 
-        db_class.commit()
+    val = (data_input,)
+    # In Python, a tuple containing a single value must include a comma.
+    # For example, ('abc') is evaluated as a scalar while ('abc',) is evaluated as a tuple.
+    db_class.execute(sql, val)
+    # insert input data into test_data
+    # structure (schema : 'mydatabase' -> table : 'test_table' -> column : 'test_data')
 
-    def select_by_id(self, id_input):
-        # when id number is input, it returns data matched to the input id using MySQL SELECT function
-        db_class = Database()
+    db_class.commit()
 
-        sql = "SELECT * FROM test_table WHERE test_id = %s"
 
-        id = (id_input,)
+def select_by_id(id_input):
+    # when id number is input, it returns data matched to the input id using MySQL SELECT function
+    db_class = Database()
 
-        db_class.execute(sql, id)
+    sql = "SELECT * FROM test_table WHERE test_id = %s"
 
-        row = db_class.mycursor.fetchall()
+    id = (id_input,)
 
-        value_in_id = row[0][1]
-        # row structure --> [(x, y)] tuple in list, so I referred to y by row[0][1]
+    db_class.execute(sql, id)
 
-        return value_in_id
+    row = db_class.mycursor.fetchall()
+
+    value_in_id = row[0][1]
+    # row structure --> [(x, y)] tuple in list, so I referred to y by row[0][1]
+
+    return value_in_id
 
 
 def show_columns_from_table():
@@ -92,4 +93,3 @@ def select_from_table():
     row = db_class.mycursor.fetchall()
 
     return row
-
