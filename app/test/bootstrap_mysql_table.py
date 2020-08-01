@@ -27,6 +27,10 @@ class ColumnName(Enum):
 
 class DataInsertHandler(tornado.web.RequestHandler):
     # to get data input by html form and transmit input data into MySQL server to save it
+
+    # to connect to DB just one time
+    database = db_query_module.Database()
+
     def get(self):
         # to request an input form by GET method
         self.write('<html><body><form action="/" method="POST">'
@@ -42,7 +46,7 @@ class DataInsertHandler(tornado.web.RequestHandler):
 
         # 'contents' has a list of tuples which has table data
         # (ex. : [(test_id1, stock_code1), (test_id2, stock_code2)...]
-        contents = db_query_module.select_from_table()
+        contents = self.database.select_from_table()
 
         # if input stock data is not available, it shows error message
         try:
@@ -61,7 +65,7 @@ class DataInsertHandler(tornado.web.RequestHandler):
                     break
 
             if not existing_data:
-                db_query_module.insert_into_db(data_input)
+                self.database.insert_into_db(data_input)
 
                 self.write("input stock code has been saved :  " + data_input)
 
@@ -75,6 +79,9 @@ class DataInsertHandler(tornado.web.RequestHandler):
 
 class DataSelectHandler(tornado.web.RequestHandler):
     # to get input(id) by HTML and show the allocated data according to what has been input(id)
+
+    database = db_query_module.Database()
+
     def get(self):
         # to show HTML input form by GET method
         self.write('<html><body><form action="/show-data" method="POST">'
@@ -88,7 +95,7 @@ class DataSelectHandler(tornado.web.RequestHandler):
 
         data_input = self.get_argument("message")
 
-        value_in_id = db_query_module.select_by_id(data_input)
+        value_in_id = self.database.select_by_id(data_input)
 
         self.write(value_in_id)
 
@@ -107,14 +114,15 @@ class TaskRunner(object):
 class DataTableShowHandler(tornado.web.RequestHandler):
     task_runner = TaskRunner()
 
-    # 'contents' has a list of tuples which has table data
-    # (ex. : [(test_id1, stock_code1), (test_id2, stock_code2)...]
+    database = db_query_module.Database()
 
     @gen.coroutine
     def get(self):
-        contents = db_query_module.select_from_table()
+        # 'contents' has a list of tuples which has table data
+        # (ex. : [(test_id1, stock_code1), (test_id2, stock_code2)...]
+        contents = self.database.select_from_table()
 
-        column_name_list = db_query_module.show_columns_from_table()
+        column_name_list = self.database.show_columns_from_table()
 
         # run get_current_price async threads
         current_stock_price_dict = yield {stock_code[1]: self.task_runner.get_stock_price(stock_code[1])
