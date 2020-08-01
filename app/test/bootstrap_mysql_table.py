@@ -26,6 +26,12 @@ class ColumnName(Enum):
 
 class DataInsertHandler(tornado.web.RequestHandler):
     # to get data input by html form and transmit input data into MySQL server to save it
+    database = db_query_module.Database()
+
+    # 'contents' has a list of tuples which has table data
+    # (ex. : [(test_id1, stock_code1), (test_id2, stock_code2)...]
+    contents = db_query_module.select_from_table()
+
     def get(self):
         # to request an input form by GET method
         self.write('<html><body><form action="/" method="POST">'
@@ -43,12 +49,8 @@ class DataInsertHandler(tornado.web.RequestHandler):
         try:
             get_current_stock_price.get_current_price(data_input)
 
-            database = db_query_module.Database()
-
-            contents = db_query_module.select_from_table()
-
             # get only stock_codes from contents above
-            stock_code_list = [stock_code[1] for stock_code in contents]
+            stock_code_list = [stock_code[1] for stock_code in self.contents]
 
             # to prevent registering repeated stock code in the db
             existing_data = False
@@ -60,7 +62,7 @@ class DataInsertHandler(tornado.web.RequestHandler):
                     break
 
             if not existing_data:
-                database.insert_into_db(data_input)
+                self.database.insert_into_db(data_input)
 
                 self.write("input stock code has been saved :  " + data_input)
 
@@ -74,6 +76,8 @@ class DataInsertHandler(tornado.web.RequestHandler):
 
 class DataSelectHandler(tornado.web.RequestHandler):
     # to get input(id) by HTML and show the allocated data according to what has been input(id)
+    database = db_query_module.Database()
+
     def get(self):
         # to show HTML input form by GET method
         self.write('<html><body><form action="/show-data" method="POST">'
@@ -87,9 +91,7 @@ class DataSelectHandler(tornado.web.RequestHandler):
 
         data_input = self.get_argument("message")
 
-        database = db_query_module.Database()
-
-        value_in_id = database.select_by_id(data_input)
+        value_in_id = self.database.select_by_id(data_input)
 
         self.write(value_in_id)
 
@@ -106,30 +108,26 @@ class TaskRunner(object):
 
 # to show data in the schema as a table form
 class DataTableShowHandler(tornado.web.RequestHandler):
+    task_runner = TaskRunner()
+
+    # 'contents' has a list of tuples which has table data
+    # (ex. : [(test_id1, stock_code1), (test_id2, stock_code2)...]
+    contents = db_query_module.select_from_table()
+
+    column_name_list = db_query_module.show_columns_from_table()
+
     @gen.coroutine
     def get(self):
-        column_name_list = db_query_module.show_columns_from_table()
-
-        readable_col_list = [ColumnName(col).name for col in column_name_list]
-
-        # 'contents' has a list of tuples which has table data
-        # (ex. : [(id_value1, address_value1), (id_value2, address_value2)...]
-        contents = db_query_module.select_from_table()
-
-        # get only stock_codes from contents above
-        stock_code_list = [stock_code[1] for stock_code in contents]
-
-        tasks = TaskRunner()
-
         # run get_current_price async threads
-        # {"stock_code" : "current_price", ...} dict to be used when calling current_price
-        # run get_current_price() and get a current price
-        current_stock_price_dict = yield {stock_code: tasks.get_stock_price(stock_code)
-                                          for stock_code in stock_code_list}
+        current_stock_price_dict = yield {stock_code[1]: self.task_runner.get_stock_price(stock_code[1])
+                                          for stock_code in self.contents}
 
         # this is not actual contents in the database table to avoid saving data in the original database
-        # current_stock_price_dict[(x[1])] refers to stock_code record, to be added in the virtual_contents as a tuple
-        virtual_contents = [x + (current_stock_price_dict[(x[1])],) for x in contents]
+        virtual_contents = [(test_id, stock_code, current_stock_price_dict[stock_code])
+                            for test_id, stock_code in self.contents]
+
+        # readable column list using Enum
+        readable_col_list = [ColumnName(col).name for col in self.column_name_list]
 
         # this is not an actual column
         virtual_columns = [x for x in readable_col_list]
