@@ -12,84 +12,62 @@ class Database(object):
             port=3306,
             database='test_database'
         )
-        self.mycursor = self.cnx.cursor()
 
-    def execute(self, query, args=None):
-        self.mycursor.execute(query, args)
+    def insert_into_db(self, data_input):
+        # MySQL INSERT function
+        cursor = self.cnx.cursor()
 
-    def execute_one(self, query, args=None):
-        self.mycursor.execute(query, args)
-        row = self.mycursor.fetchone()
-        return row
+        sql = "INSERT INTO test_table (test_data) VALUES (%s)"
 
-    def execute_all(self, query, args=None):
-        self.mycursor.execute(query, args)
-        row = self.mycursor.fetchall()
-        return row
+        val = (data_input,)
 
-    def commit(self):
+        cursor.execute(sql, val)
+        # insert input data into test_data
+        # structure (schema : 'mydatabase' -> table : 'test_table' -> column : 'test_data')
+
         self.cnx.commit()
 
+    def select_by_id(self, id_input):
+        # when id number is input, it returns data matched to the input id using MySQL SELECT function
+        cursor = self.cnx.cursor()
 
-def insert_into_db(data_input):
-    # MySQL INSERT function
-    db_class = Database()
+        sql = "SELECT * FROM test_table WHERE test_id = %s"
 
-    sql = "INSERT INTO test_table (test_data) VALUES (%s)"
+        id = (id_input,)
 
-    val = (data_input,)
-    # In Python, a tuple containing a single value must include a comma.
-    # For example, ('abc') is evaluated as a scalar while ('abc',) is evaluated as a tuple.
-    db_class.execute(sql, val)
-    # insert input data into test_data
-    # structure (schema : 'mydatabase' -> table : 'test_table' -> column : 'test_data')
+        cursor.execute(sql, id)
 
-    db_class.commit()
+        row = cursor.fetchall()
 
+        value_in_id = row[0][1]
+        # row structure --> [(x, y)] tuple in list, so I referred to y by row[0][1]
 
-def select_by_id(id_input):
-    # when id number is input, it returns data matched to the input id using MySQL SELECT function
-    db_class = Database()
+        return value_in_id
 
-    sql = "SELECT * FROM test_table WHERE test_id = %s"
+    def show_columns_from_table(self):
+        # to take a name of the each column from the table
+        cursor = self.cnx.cursor()
 
-    id = (id_input,)
+        sql = "SHOW COLUMNS FROM test_table"
 
-    db_class.execute(sql, id)
+        cursor.execute(sql)
 
-    row = db_class.mycursor.fetchall()
+        rows = cursor.fetchall()
 
-    value_in_id = row[0][1]
-    # row structure --> [(x, y)] tuple in list, so I referred to y by row[0][1]
+        columns = [row[0] for row in rows]
+        # list comprehension used
 
-    return value_in_id
+        return columns
+        # to return name of each column as a list
 
+    def select_from_table(self):
+        # to get all table record data by SELECT method
+        cursor = self.cnx.cursor()
 
-def show_columns_from_table():
-    # to take a name of the each column from the table
-    db_class = Database()
+        sql = "SELECT test_id, test_data FROM test_table"
 
-    sql = "SHOW COLUMNS FROM test_table"
+        cursor.execute(sql)
 
-    db_class.execute(sql)
+        row = cursor.fetchall()
 
-    rows = db_class.mycursor.fetchall()
-
-    columns = [row[0] for row in rows]
-    # list comprehension used
-
-    return columns
-    # to return name of each column as a list
-
-
-def select_from_table():
-    # to get all table record data by SELECT method
-    db_class = Database()
-
-    sql = "SELECT test_id, test_data FROM test_table"
-
-    db_class.execute(sql)
-
-    row = db_class.mycursor.fetchall()
-
-    return row
+        return row
