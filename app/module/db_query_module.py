@@ -5,7 +5,6 @@ class Database(object):
     def __init__(self):
         # to connect mysql_database
         self.conn = mysql.connector.connect(
-            # connect to mysql server
             host='127.0.0.1',
             password='1111',
             user='root',
@@ -13,8 +12,7 @@ class Database(object):
             database='test_database'
         )
 
-    def insert_into_db(self, data_input):
-        # MySQL INSERT function
+    def insert_into_test_table(self, data_input):
         cursor = self.conn.cursor()
 
         sql = "INSERT INTO test_table (test_data) VALUES (%s)"
@@ -27,8 +25,21 @@ class Database(object):
 
         self.conn.commit()
 
+    def insert_into_user_info(self, input_id, input_password):
+        cursor = self.conn.cursor()
+
+        sql = "INSERT INTO user_info (user_id, user_password) VALUES (%s, %s)"
+
+        val = (input_id, input_password)
+
+        cursor.execute(sql, val)
+        # insert input data into test_data
+        # structure (schema : 'test_database' -> table : 'test_table' -> column : 'test_data')
+
+        self.conn.commit()
+
+    # when id number is input, it returns data matched to the input id using MySQL SELECT function
     def select_by_id(self, id_input):
-        # when id number is input, it returns data matched to the input id using MySQL SELECT function
         cursor = self.conn.cursor()
 
         sql = "SELECT * FROM test_table WHERE test_id = %s"
@@ -43,8 +54,8 @@ class Database(object):
         # row structure --> [(x, y)] tuple in list, so I referred to y by row[0][1]
         return value_in_id
 
-    def show_columns_from_table(self):
-        # to take a name of the each column from the table
+    # to take a name of the each column from test_table
+    def show_columns_from_test_table(self):
         cursor = self.conn.cursor()
 
         sql = "SHOW COLUMNS FROM test_table"
@@ -57,9 +68,8 @@ class Database(object):
         # to return name of each column as a list
         return columns
 
-        # to get all table record data by SELECT method
-
-    def select_from_table(self):
+    # to get all table record data by SELECT method
+    def select_from_test_table(self):
         cursor = self.conn.cursor()
 
         sql = "SELECT test_id, test_data FROM test_table"
@@ -69,9 +79,12 @@ class Database(object):
         row = cursor.fetchall()
         return row
 
-    # to check if repeated user id already exists in the db
-    def create_user_validation(self, user_id, user_password):
+    def select_from_user_info(self):
         cursor = self.conn.cursor()
 
-        cursor.callproc('createUser_validation', (user_id, user_password))
-        self.conn.commit()
+        sql = "SELECT user_id FROM user_info"
+
+        cursor.execute(sql)
+
+        row = cursor.fetchall()
+        return row
