@@ -12,7 +12,6 @@ from enum import Enum
 from app.module import db_query_module
 from controller import get_current_stock_price
 
-
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     # The default has changed from selector to pro-actor in Python 3.8.
@@ -33,21 +32,37 @@ class SignupHandler(tornado.web.RequestHandler):
         super(SignupHandler, self).__init__(application, request)
 
     def get(self):
-        self.render('signup.html')
+        self.write('<html>'
+                   '<body>'
+                   '<form action="/signup" method="POST">'
+                   '<label for="username">ID : </label></br>'
+                   '<input type="text" id="user_id" name="user_id"></br>'
+                   '<label for="pwd">Password : </label></br>'
+                   '<input type="password" id="user_password" name="user_password"></br>'
+                   '<input type="submit" value="Submit">'
+                   '</form>'
+                   '</body>'
+                   '</html>'
+                   )
 
     def post(self):
         self.set_header("Content-Type", "text/plain")
 
-        input_id = self.get_argument('inputID')
+        input_id = self.get_argument('user_id')
 
-        input_password = self.get_argument('inputPassword')
+        input_password = self.get_argument('user_password')
 
-        try:
-            self.database.create_user_validation(input_id, input_password)
-        except:
-            self.write("This ID already exists!")
+        id_in_db = self.database.select_from_user_info()
 
-        '''TODO'''
+        for x in id_in_db:
+            if x[0] == input_id:
+                return self.write('This ID already exists !')
+
+        self.database.insert_into_user_info(input_id, input_password)
+
+        self.write('you have created your ID : ' + input_id)
+
+
 # to get data input by html form and transmit input data into MySQL server to save it
 class DataInsertHandler(tornado.web.RequestHandler):
     def __init__(self, application, request):
@@ -71,7 +86,7 @@ class DataInsertHandler(tornado.web.RequestHandler):
 
         # 'contents' has a list of tuples which has table data
         # (ex. : [(test_id1, stock_code1), (test_id2, stock_code2)...]
-        contents = self.database.select_from_table()
+        contents = self.database.select_from_test_table()
 
         # if input stock data is not available, it shows error message
         try:
@@ -90,7 +105,7 @@ class DataInsertHandler(tornado.web.RequestHandler):
                     break
 
             if not existing_data:
-                self.database.insert_into_db(data_input)
+                self.database.insert_into_test_table(data_input)
 
                 self.write("input stock code has been saved :  " + data_input)
 
@@ -146,9 +161,9 @@ class DataTableShowHandler(tornado.web.RequestHandler):
     async def get(self):
         # 'contents' has a list of tuples which has table data
         # (ex. : [(test_id1, stock_code1), (test_id2, stock_code2)...]
-        contents = self.database.select_from_table()
+        contents = self.database.select_from_test_table()
 
-        column_name_list = self.database.show_columns_from_table()
+        column_name_list = self.database.show_columns_from_test_table()
 
         # run get_current_price async threads and wait for future objects until they are loaded
         current_stock_price_dict = await multi({stock_code[1]: self.get_stock_price(stock_code[1])
