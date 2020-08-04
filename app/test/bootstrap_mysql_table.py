@@ -1,12 +1,12 @@
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
-from tornado import gen
-from tornado.concurrent import run_on_executor
-from concurrent.futures import ThreadPoolExecutor
 import sys
 import asyncio
-from multiprocessing import cpu_count
+
+from tornado.concurrent import run_on_executor
+from concurrent.futures import ThreadPoolExecutor
+from tornado.gen import multi
 from enum import Enum
 # a separate directory only for MySQL connection python module
 from app.module import db_query_module
@@ -25,11 +25,36 @@ class ColumnName(Enum):
     TestData = "test_data"
 
 
-class DataInsertHandler(tornado.web.RequestHandler):
-    # to get data input by html form and transmit input data into MySQL server to save it
+class SignupHandler(tornado.web.RequestHandler):
+    def __init__(self, application, request):
+        # to connect to DB just one time
+        self.database = db_query_module.Database()
 
-    # to connect to DB just one time
-    database = db_query_module.Database()
+        super(SignupHandler, self).__init__(application, request)
+
+    def get(self):
+        self.render('signup.html')
+
+    def post(self):
+        self.set_header("Content-Type", "text/plain")
+
+        input_id = self.get_argument('inputID')
+
+        input_password = self.get_argument('inputPassword')
+
+        try:
+            self.database.create_user_validation(input_id, input_password)
+        except:
+            self.write("This ID already exists!")
+
+        '''TODO'''
+# to get data input by html form and transmit input data into MySQL server to save it
+class DataInsertHandler(tornado.web.RequestHandler):
+    def __init__(self, application, request):
+        # to connect to DB just one time
+        self.database = db_query_module.Database()
+
+        super(DataInsertHandler, self).__init__(application, request)
 
     def get(self):
         # to request an input form by GET method
@@ -69,18 +94,20 @@ class DataInsertHandler(tornado.web.RequestHandler):
 
                 self.write("input stock code has been saved :  " + data_input)
 
-        except IOError as e:
-            self.write(str(e))
-        except IndexError as e:
-            self.write(str(e))
-        except RuntimeError as e:
-            self.write(str(e))
+        except IOError:
+            self.write("stocks object/file was not found or unable to retrieve")
+        except IndexError:
+            self.write("stock data input was unavailable or not found in Investing.com")
+        except RuntimeError:
+            self.write("stock data was not found")
 
 
+# to get input(id) by HTML and show the allocated data according to what has been input(id)
 class DataSelectHandler(tornado.web.RequestHandler):
-    # to get input(id) by HTML and show the allocated data according to what has been input(id)
+    def __init__(self, application, request):
+        self.database = db_query_module.Database()
 
-    database = db_query_module.Database()
+        super(DataSelectHandler, self).__init__(application, request)
 
     def get(self):
         # to show HTML input form by GET method
@@ -100,33 +127,32 @@ class DataSelectHandler(tornado.web.RequestHandler):
         self.write(value_in_id)
 
 
-class TaskRunner(object):
-    executor = ThreadPoolExecutor(max_workers=(cpu_count() * 5))
-
-    @run_on_executor
-    def get_stock_price(self, stock_code):
-        result = get_current_stock_price.get_current_price(stock_code)
-
-        return result
-
-
 # to show data in the schema as a table form
 class DataTableShowHandler(tornado.web.RequestHandler):
-    task_runner = TaskRunner()
+    def __init__(self, application, request, executor):
+        self.database = db_query_module.Database()
 
-    database = db_query_module.Database()
+        self.executor = executor
 
-    @gen.coroutine
-    def get(self):
+        super(DataTableShowHandler, self).__init__(application, request)
+
+    # get current stock price asynchronously
+    # The executor to be used is determined by the executor attributes of self (self.executor)
+    @run_on_executor(executor='executor')
+    def get_stock_price(self, stock_code):
+        result = get_current_stock_price.get_current_price(stock_code)
+        return result
+
+    async def get(self):
         # 'contents' has a list of tuples which has table data
         # (ex. : [(test_id1, stock_code1), (test_id2, stock_code2)...]
         contents = self.database.select_from_table()
 
         column_name_list = self.database.show_columns_from_table()
 
-        # run get_current_price async threads
-        current_stock_price_dict = yield {stock_code[1]: self.task_runner.get_stock_price(stock_code[1])
-                                          for stock_code in contents}
+        # run get_current_price async threads and wait for future objects until they are loaded
+        current_stock_price_dict = await multi({stock_code[1]: self.get_stock_price(stock_code[1])
+                                                for stock_code in contents})
 
         # this is not actual contents in the database table to avoid saving data in the original database
         virtual_contents = [(test_id, stock_code, current_stock_price_dict[stock_code])
@@ -136,32 +162,33 @@ class DataTableShowHandler(tornado.web.RequestHandler):
         readable_col_list = [ColumnName(col).name for col in column_name_list]
 
         # this is not an actual column
-        virtual_columns = [x for x in readable_col_list]
+        virtual_columns = [col for col in readable_col_list]
 
         virtual_columns.append("Current Stock Price")
 
-        self.render("bootstrap_table.html",
-                    database_name="show table",
-                    table_name="Test Table",
-                    contents=virtual_contents,
-                    columns=virtual_columns,
-                    )
-
-
-# to map "/" to FormHandler, to map "/showdata" to DataHandler
-# to map "/show-all" to DataTableShowHandler
-application = tornado.web.Application([
-    (r"/", DataInsertHandler),
-    (r"/show-data", DataSelectHandler),
-    (r"/show-all", DataTableShowHandler)
-])
+        await self.render("bootstrap_table.html",
+                          database_name="show table",
+                          table_name="Test Table",
+                          contents=virtual_contents,
+                          columns=virtual_columns,
+                          )
 
 
 if __name__ == "__main__":
+    executor = ThreadPoolExecutor(max_workers=4)
+
+    # to map "/" to FormHandler, to map "/showdata" to DataHandler
+    # to map "/show-all" to DataTableShowHandler
+    application = tornado.web.Application([
+        (r"/", DataInsertHandler),
+        (r"/show-data", DataSelectHandler),
+        (r"/show-all", DataTableShowHandler, dict(executor=executor)),
+        (r"/signup", SignupHandler),
+    ])
+
     http_server = tornado.httpserver.HTTPServer(application)
 
     socket_address = 8888
     http_server.listen(socket_address)
 
-    # print("the socket address %d has been assigned" % socket_address)
     tornado.ioloop.IOLoop.instance().start()
