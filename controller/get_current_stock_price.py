@@ -21,6 +21,4 @@ def get_current_price(stock_symbol):
 
     # get today's close price for a certain stock
     current_price = current_price_dict['recent'][0]['close']
-
     return current_price
-
