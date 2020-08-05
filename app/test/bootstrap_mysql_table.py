@@ -7,21 +7,14 @@ import asyncio
 from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
 from tornado.gen import multi
-from enum import Enum
-# a separate directory only for MySQL connection python module
 from app.module import db_query_module
 from controller import get_current_stock_price
+
 
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     # The default has changed from selector to pro-actor in Python 3.8.
     # Thus, this line should be added to detour probable errors
-
-
-# to change real column names to readable column names
-class ColumnName(Enum):
-    TestID = "test_id"
-    TestData = "test_data"
 
 
 class SignupHandler(tornado.web.RequestHandler):
@@ -93,7 +86,7 @@ class DataInsertHandler(tornado.web.RequestHandler):
             get_current_stock_price.get_current_price(data_input)
 
             # get only stock_codes from contents above
-            stock_code_list = [stock_code[1] for stock_code in contents]
+            stock_code_list = [stock_code for _, stock_code in contents]
 
             # to prevent registering repeated stock code in the db
             existing_data = False
@@ -166,26 +159,17 @@ class DataTableShowHandler(tornado.web.RequestHandler):
         column_name_list = self.database.show_columns_from_test_table()
 
         # run get_current_price async threads and wait for future objects until they are loaded
-        current_stock_price_dict = await multi({stock_code[1]: self.get_stock_price(stock_code[1])
-                                                for stock_code in contents})
+        current_stock_price_dict = await multi({stock_code: self.get_stock_price(stock_code)
+                                                for _, stock_code in contents})
 
         # this is not actual contents in the database table to avoid saving data in the original database
         virtual_contents = [(test_id, stock_code, current_stock_price_dict[stock_code])
                             for test_id, stock_code in contents]
 
-        # readable column list using Enum
-        readable_col_list = [ColumnName(col).name for col in column_name_list]
-
-        # this is not an actual column
-        virtual_columns = [col for col in readable_col_list]
-
-        virtual_columns.append("Current Stock Price")
-
         await self.render("bootstrap_table.html",
                           database_name="show table",
                           table_name="Test Table",
                           contents=virtual_contents,
-                          columns=virtual_columns,
                           )
 
 
