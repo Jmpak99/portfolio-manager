@@ -26,7 +26,7 @@ class Database(object):
 
     def insert_into_user_info(self, input_id, input_password):
         cursor = self.conn.cursor()
-
+        
         sql = "INSERT INTO user_info (user_id, user_password) VALUES (%s, %s)"
 
         val = (input_id, input_password)

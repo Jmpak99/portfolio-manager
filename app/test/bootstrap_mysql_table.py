@@ -117,8 +117,6 @@ class DataTableShowHandler(tornado.web.RequestHandler):
         # (ex. : [(test_id1, stock_code1), (test_id2, stock_code2)...]
         contents = self.database.select_from_test_table()
 
-        column_name_list = self.database.show_columns_from_test_table()
-
         # run get_current_price async threads and wait for future objects until they are loaded
         current_stock_price_dict = await multi({stock_code: self.get_stock_price(stock_code)
                                                 for _, stock_code in contents})
