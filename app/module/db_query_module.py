@@ -3,7 +3,6 @@ import mysql.connector
 
 class Database(object):
     def __init__(self):
-        # to connect mysql_database
         self.conn = mysql.connector.connect(
             host='127.0.0.1',
             password='1111',
@@ -33,12 +32,10 @@ class Database(object):
         val = (input_id, input_password)
 
         cursor.execute(sql, val)
-        # insert input data into test_data
-        # structure (schema : 'test_database' -> table : 'test_table' -> column : 'test_data')
 
         self.conn.commit()
 
-    # when id number is input, it returns data matched to the input id using MySQL SELECT function
+    # when id number is registered, it returns data matched to the input id using MySQL SELECT function
     def select_by_id(self, id_input):
         cursor = self.conn.cursor()
 
