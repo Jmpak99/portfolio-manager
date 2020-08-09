@@ -10,6 +10,7 @@ from tornado.gen import multi
 from app.libs import db_connection
 from app.controller import get_current_stock_price
 
+
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     # The default has changed from selector to pro-actor in Python 3.8.
