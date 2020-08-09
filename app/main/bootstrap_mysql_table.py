@@ -8,7 +8,7 @@ from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
 from tornado.gen import multi
 from app.libs import db_connection
-from app.controller import get_current_stock_price
+from app.domain.controller import get_current_stock_price
 
 
 if sys.platform == 'win32':
@@ -69,30 +69,6 @@ class DataInsertHandler(tornado.web.RequestHandler):
             self.write("input stock code has been saved :  " + data_input)
 
 
-# to get input(id) by HTML and show the allocated data according to what has been input(id)
-class DataSelectHandler(tornado.web.RequestHandler):
-    def __init__(self, application, request):
-        self.database = db_connection.Database()
-
-        super(DataSelectHandler, self).__init__(application, request)
-
-    def get(self):
-        self.write('<html><body><form action="/show-data" method="POST">'
-                   '<input type="text" name="message">'
-                   '<input type="submit" value="Submit">'
-                   '</form></body></html>')
-
-    def post(self):
-        # to get data from Mysql database("test_database") and show it on the page "/showdata"
-        self.set_header("Content-Type", "text/plain")
-
-        data_input = self.get_argument("message")
-
-        value_in_id = self.database.select_by_id(data_input)
-
-        self.write(value_in_id)
-
-
 class DataTableShowHandler(tornado.web.RequestHandler):
     def __init__(self, application, request, executor):
         self.database = db_connection.Database()
@@ -121,7 +97,8 @@ class DataTableShowHandler(tornado.web.RequestHandler):
         virtual_contents = [(test_id, stock_code, current_stock_price_dict[stock_code])
                             for test_id, stock_code in contents]
 
-        return self.render("bootstrap_table.html",
+        return self.render("C:\\Users\\Administrator\\PycharmProjects\\portfolio-manager\\templates\\bootstrap_table"
+                           ".html",
                            database_name="show table",
                            table_name="Test Table",
                            contents=virtual_contents,
@@ -133,7 +110,6 @@ if __name__ == "__main__":
 
     application = tornado.web.Application([
         (r"/", DataInsertHandler),
-        (r"/show-data", DataSelectHandler),
         (r"/show-all", DataTableShowHandler, dict(executor=executor)),
     ])
 

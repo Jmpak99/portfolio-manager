@@ -1,5 +1,5 @@
 def handle_errors(error):
-    msg = str()
+    error_msg = str()
     status = False
 
     if type(error) == IOError:

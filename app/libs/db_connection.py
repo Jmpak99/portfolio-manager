@@ -5,10 +5,10 @@ class Database(object):
     def __init__(self):
         self.conn = mysql.connector.connect(
             host='127.0.0.1',
-            password='1111',
+            password='um8910vs',
             user='root',
-            port=3306,
-            database='test_database'
+            port=3307,
+            database='mydatabase'
         )
 
     '''This function will be deleted in the next PR'''
