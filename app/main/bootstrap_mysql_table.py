@@ -8,7 +8,7 @@ from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
 from tornado.gen import multi
 from app.libs import db_connection
-from controller import get_current_stock_price
+from app.controller import get_current_stock_price
 
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
