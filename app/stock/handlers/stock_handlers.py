@@ -1,20 +1,9 @@
-import tornado.httpserver
-import tornado.ioloop
 import tornado.web
-import sys
-import asyncio
 
 from tornado.concurrent import run_on_executor
-from concurrent.futures import ThreadPoolExecutor
 from tornado.gen import multi
 from app.libs import db_connection
-from app.domain.controller import get_current_stock_price
-
-
-if sys.platform == 'win32':
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-    # The default has changed from selector to pro-actor in Python 3.8.
-    # Thus, this line should be added to detour probable errors
+from app.stock.controller import get_current_stock_price
 
 
 # to get data input by html form and transmit input data into MySQL server to save it
@@ -103,19 +92,3 @@ class DataTableShowHandler(tornado.web.RequestHandler):
                            table_name="Test Table",
                            contents=virtual_contents,
                            )
-
-
-if __name__ == "__main__":
-    executor = ThreadPoolExecutor(max_workers=4)
-
-    application = tornado.web.Application([
-        (r"/", DataInsertHandler),
-        (r"/show-all", DataTableShowHandler, dict(executor=executor)),
-    ])
-
-    http_server = tornado.httpserver.HTTPServer(application)
-
-    socket_address = 8888
-    http_server.listen(socket_address)
-
-    tornado.ioloop.IOLoop.instance().start()

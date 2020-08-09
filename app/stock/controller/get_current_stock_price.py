@@ -1,7 +1,16 @@
 import investpy
 import json
 import re
+import logging
 from app.utils.handle_errors import handle_errors
+import datetime
+
+stock_logger = logging.getLogger("stock_log")
+f_hdlr = logging.FileHandler("./stock_log.log")
+s_hdlr = logging.StreamHandler()
+stock_logger.addHandler(f_hdlr)
+stock_logger.addHandler(s_hdlr)
+stock_logger.setLevel(logging.INFO)
 
 
 # get parameter (stock ticker symbol), and decide whether the country is south korea or united states
@@ -15,6 +24,7 @@ def get_current_price(stock_symbol):
         current_price_raw = investpy.stocks.get_stock_recent_data(stock_symbol, country, as_json=True,
                                                                   order='descending', interval='Daily')
     except Exception as e:
+        stock_logger.error("%s, get_current_price() error : " % datetime.datetime.now().strftime('%H:%M:%S') + str(e))
         return handle_errors(e)
 
     current_price_dict = json.loads(current_price_raw)
