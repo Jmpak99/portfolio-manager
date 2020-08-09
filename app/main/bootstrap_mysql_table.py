@@ -7,9 +7,8 @@ import asyncio
 from tornado.concurrent import run_on_executor
 from concurrent.futures import ThreadPoolExecutor
 from tornado.gen import multi
-from app.module import db_query_module
+from app.libs import db_connection
 from controller import get_current_stock_price
-
 
 if sys.platform == 'win32':
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
@@ -20,7 +19,7 @@ if sys.platform == 'win32':
 # to get data input by html form and transmit input data into MySQL server to save it
 class DataInsertHandler(tornado.web.RequestHandler):
     def __init__(self, application, request):
-        self.database = db_query_module.Database()
+        self.database = db_connection.Database()
 
         super(DataInsertHandler, self).__init__(application, request)
 
@@ -42,18 +41,14 @@ class DataInsertHandler(tornado.web.RequestHandler):
         # if input stock data is not available, it shows error message
         current_price = get_current_stock_price.get_current_price(data_input)
 
-        if current_price == IOError:
-            self.write("stocks object/file was not found or unable to retrieve")
+        # if current_price is successfully received without errors, it returns float type
+        # otherwise, it returns (status=False, error_msg)
+        if type(current_price) == tuple:
+            error_msg = current_price[1]
+            self.write(error_msg)
             return
-        elif current_price == IndexError:
-            self.write("stock data input was unavailable or not found in Investing.com")
-            return
-        elif current_price == RuntimeError:
-            self.write("stock data was not found")
-            return
-        elif current_price == ValueError:
-            self.write("you have not registered anything")
-            return
+        else:
+            pass
 
         # get only stock_codes from contents above
         stock_code_list = [stock_code for _, stock_code in contents]
@@ -76,7 +71,7 @@ class DataInsertHandler(tornado.web.RequestHandler):
 # to get input(id) by HTML and show the allocated data according to what has been input(id)
 class DataSelectHandler(tornado.web.RequestHandler):
     def __init__(self, application, request):
-        self.database = db_query_module.Database()
+        self.database = db_connection.Database()
 
         super(DataSelectHandler, self).__init__(application, request)
 
@@ -99,7 +94,7 @@ class DataSelectHandler(tornado.web.RequestHandler):
 
 class DataTableShowHandler(tornado.web.RequestHandler):
     def __init__(self, application, request, executor):
-        self.database = db_query_module.Database()
+        self.database = db_connection.Database()
 
         self.executor = executor
 

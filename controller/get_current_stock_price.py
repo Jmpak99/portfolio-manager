@@ -1,6 +1,7 @@
 import investpy
 import json
 import re
+from app.utils.handle_errors import handle_errors
 
 
 # get parameter (stock ticker symbol), and decide whether the country is south korea or united states
@@ -13,16 +14,11 @@ def get_current_price(stock_symbol):
     try:
         current_price_raw = investpy.stocks.get_stock_recent_data(stock_symbol, country, as_json=True,
                                                                   order='descending', interval='Daily')
-    except IOError:
-        return IOError
-    except IndexError:
-        return IndexError
-    except RuntimeError:
-        return RuntimeError
-    except ValueError:
-        return ValueError
+    except Exception as e:
+        return handle_errors(e)
 
     current_price_dict = json.loads(current_price_raw)
 
     current_price = current_price_dict['recent'][0]['close']
+
     return current_price
