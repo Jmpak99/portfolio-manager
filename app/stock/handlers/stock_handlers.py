@@ -37,8 +37,6 @@ class DataInsertHandler(tornado.web.RequestHandler):
             error_msg = current_price[1]
             self.write(error_msg)
             return
-        else:
-            pass
 
         # get only stock_codes from contents above
         stock_code_list = [stock_code for _, stock_code in contents]
@@ -86,8 +84,7 @@ class DataTableShowHandler(tornado.web.RequestHandler):
         virtual_contents = [(test_id, stock_code, current_stock_price_dict[stock_code])
                             for test_id, stock_code in contents]
 
-        return self.render("C:\\Users\\Administrator\\PycharmProjects\\portfolio-manager\\templates\\bootstrap_table"
-                           ".html",
+        return self.render(".\\..\\..\\..\\templates\\bootstrap_table.html",
                            database_name="show table",
                            table_name="Test Table",
                            contents=virtual_contents,
