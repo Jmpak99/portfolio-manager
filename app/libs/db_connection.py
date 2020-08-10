@@ -12,7 +12,7 @@ class Database(object):
         )
 
     def insert_into_test_table(self, data_input):
-        '''DEPRECATED This function will be deleted in the next PR'''
+        """DEPRECATED This function will be deleted in the next PR"""
         cursor = self.conn.cursor()
 
         sql = "INSERT INTO test_table (test_data) VALUES (%s)"
@@ -26,7 +26,7 @@ class Database(object):
         self.conn.commit()
 
     def select_from_test_table(self):
-        '''DEPRECATED This functions will be deleted in the next PR'''
+        """DEPRECATED This functions will be deleted in the next PR"""
 
         cursor = self.conn.cursor()
 
