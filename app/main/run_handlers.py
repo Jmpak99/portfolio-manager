@@ -3,6 +3,7 @@ import tornado.ioloop
 import tornado.web
 import sys
 import asyncio
+import settings
 
 from concurrent.futures import ThreadPoolExecutor
 from app.stock.handlers.stock_handlers import DataTableShowHandler, DataInsertHandler
@@ -17,10 +18,13 @@ if sys.platform == 'win32':
 if __name__ == "__main__":
     executor = ThreadPoolExecutor(max_workers=4)
 
+    settings = {"template_path": settings.TEMPLATE_PATH,
+                "static_path": settings.STATIC_PATH}
+
     application = tornado.web.Application([
         (r"/", DataInsertHandler),
         (r"/show-all", DataTableShowHandler, dict(executor=executor)),
-    ])
+    ], **settings)
 
     http_server = tornado.httpserver.HTTPServer(application)
 

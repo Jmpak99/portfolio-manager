@@ -18,7 +18,7 @@ def get_current_price(stock_symbol):
         current_price_raw = investpy.stocks.get_stock_recent_data(stock_symbol, country, as_json=True,
                                                                   order='descending', interval='Daily')
     except Exception as e:
-        logger.error("%s, get_current_price() error : " % datetime.datetime.now().strftime('%H:%M:%S') + str(e))
+        logger.error("{}, get_current_price() error : ".format(datetime.datetime.now().strftime('%H:%M:%S')) + str(e))
         return handle_errors(e)
 
     current_price_dict = json.loads(current_price_raw)
