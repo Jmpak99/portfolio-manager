@@ -11,13 +11,13 @@
 </head>
 <body>
 <div class="container">
-  <h2> {{"Test_Table"}} </h2>
+  <h2> Test_Table </h2>
   <table class="table">
     <thead>
       <tr>
-         {% for column in columns %}
-         <th scope="col">{{ escape(column) }}</th>
-        {% end %}
+         <th scope="col">#</th>
+         <th scope="col">Stock Code</th>
+         <th scope="col">Current Stock Price</th>
       </tr>
     </thead>
     <tbody>
